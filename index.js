@@ -3,28 +3,38 @@ const mime = require('mime-types');
 const path = require('path')
 const fs = require('fs');
 const fetch = require('node-fetch');
-const { MessageCollector } = require('@open-wa/wa-automate/dist/structures/MessageCollector');
-const { setMaxListeners } = require('events');
-const { Session } = require('inspector');
 const ATENDENTE = '5521971083900@c.us';
 
-let calling = false;
+
+
 
 
 function start(client = Client) {
 
 
     client.onAnyMessage(async message => {
+
+    
+
+
         if (message.text == "!test") {
-            console.log(message)
-            const questions = [' Tudo bem? Sou o assistente virtual do salão MAURO CHRISOSTISMO. Selecione uma das opçoes:\n1.Agendar\n2.Local\n3.Profissionais\n4.Promoçoes\n5.Serviços\n6.Falar com o atendente'];
-            let counter = 0;
+                 // envia as promocoes
+            const RES = {
+                LOCAL: async function local(){
+                    await client.sendLocation(message.from,-22.759554355246195, -43.454976461120516, "Av. Dr. Mario Guimarães, 318 - Centro, Nova Iguaçu - RJ, 26255-230")},
+                PROMO: async function promo(){
+                    await client.sendImage(message.from,path.join(__dirname,"./PROMO/promo1.jpg"))
+                    await client.sendImage(message.from,path.join(__dirname,"./PROMO/promo2.jpg"))
+                    await client.sendImage(message.from,path.join(__dirname,"./PROMO/promo3.jpg"))
+                    await client.sendImage(message.from,path.join(__dirname,"./PROMO/promo4.jpg")) }  
+            }
+            const question = [' Tudo bem? Sou o assistente virtual do salão MAURO CHRISOSTISMO. Selecione uma das opçoes:\n1.Agendar\n2.Local\n3.Profissionais\n4.Promoçoes\n5.Serviços\n6.Falar com o atendente'];
             const filter = m => m.from === message.from;
             const collector = client.createMessageCollector(message.from, filter,{
                 max: 10,
                 time: 1000 *60 //15 secs
             } )
-            await client.sendText(message.from, `Olá,${message.notifyName}. ${questions[counter++]}`);
+            await client.sendText(message.from, `Olá,${message.notifyName}. ${question[0]}`);
 
             collector.on('collect', 
                 async (m) =>{
@@ -44,7 +54,7 @@ function start(client = Client) {
                                 collector.stop((msg)=>{return msg})             
                                 break;
                             case "2" || "Local"|| "local" :            
-                                await client.sendLocation(message.from,-22.759554355246195, -43.454976461120516, "Av. Dr. Mario Guimarães, 318 - Centro, Nova Iguaçu - RJ, 26255-230")
+                                RES.LOCAL();
                                 collector.stop((msg)=>{return msg})           
                                 break;
                             case  "Local" :          
@@ -68,38 +78,23 @@ function start(client = Client) {
                                 collector.stop((msg)=>{return msg})                         
                                 break;  
                             case "4"  :
-                                await client.sendImage(message.from,path.join(__dirname,"./promotions/promo1.jpg"))
-                                await client.sendImage(message.from,path.join(__dirname,"./promotions/promo2.jpg"))
-                                await client.sendImage(message.from,path.join(__dirname,"./promotions/promo3.jpg"))
-                                await client.sendImage(message.from,path.join(__dirname,"./promotions/promo4.jpg"))
-                                collector.stop((msg)=>{return msg})                       
+                                RES.PROMO()// Envia as promocoes 
+                                collector.stop((msg)=>{return msg});                     
                                 break;
                             case  "Promoções" :
-                                await client.sendImage(message.from,path.join(__dirname,"./promotions/promo1.jpg"))
-                                await client.sendImage(message.from,path.join(__dirname,"./promotions/promo2.jpg"))
-                                await client.sendImage(message.from,path.join(__dirname,"./promotions/promo3.jpg"))
-                                await client.sendImage(message.from,path.join(__dirname,"./promotions/promo4.jpg"))
+                                RES.PROMO()// Envia as promocoes 
                                 collector.stop((msg)=>{return msg})  
                                 break;
                             case "promoções"  :
-                                await client.sendImage(message.from,path.join(__dirname,"./promotions/promo1.jpg"))
-                                await client.sendImage(message.from,path.join(__dirname,"./promotions/promo2.jpg"))
-                                await client.sendImage(message.from,path.join(__dirname,"./promotions/promo3.jpg"))
-                                await client.sendImage(message.from,path.join(__dirname,"./promotions/promo4.jpg"))
+                                RES.PROMO()// Envia as promocoes 
                                 collector.stop((msg)=>{return msg})                      
                                 break;
                             case  "Promocoes"  :                                
-                                await client.sendImage(message.from,path.join(__dirname,"./promotions/promo1.jpg"))
-                                await client.sendImage(message.from,path.join(__dirname,"./promotions/promo2.jpg"))
-                                await client.sendImage(message.from,path.join(__dirname,"./promotions/promo3.jpg"))
-                                await client.sendImage(message.from,path.join(__dirname,"./promotions/promo4.jpg"))
+                                RES.PROMO()// Envia as promocoes 
                                 collector.stop((msg)=>{return msg})  
                                 break;
                             case "promocoes" :
-                                await client.sendImage(message.from,path.join(__dirname,"./promotions/promo1.jpg"))
-                                await client.sendImage(message.from,path.join(__dirname,"./promotions/promo2.jpg"))
-                                await client.sendImage(message.from,path.join(__dirname,"./promotions/promo3.jpg"))
-                                await client.sendImage(message.from,path.join(__dirname,"./promotions/promo4.jpg"))
+                                RES.PROMO()// Envia as promocoes
                                 collector.stop((msg)=>{return msg})  
                                 break;
                             case "5"  :
@@ -143,18 +138,6 @@ function start(client = Client) {
                                 break;
                         }
                     }
-            })
-            collector.on('end', async messagesCollected => {
-                if (messagesCollected.size < questions.length - 1) {
-                    client.sendText(message.from, "Tempo excedido. Não houve uma resposta a tempo e por isso, estarei encerrando a cessão.")
-                }
-                if (messagesCollected.siza == questions.length - 1) {
-                    messagesCollected.forEach(async (messages) => {
-                        let counter = 0
-                        client.sendText(message.from, questions[counter++] + messages.content)
-                    });
-                }
-                
             })
         }
     })
