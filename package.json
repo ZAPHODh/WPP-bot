@@ -11,6 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "@open-wa/wa-automate": "^4.42.4",
+    "dotenv": "^16.0.1",
     "node-fetch": "^2.6.7"
   }
 }

@@ -3,7 +3,8 @@ const mime = require('mime-types');
 const path = require('path')
 const fs = require('fs');
 const fetch = require('node-fetch');
-const ATENDENTE = '5521971083900@c.us';
+require("dotenv").config()
+
 
 
 
@@ -27,13 +28,13 @@ function start(client = Client) {
                     await client.sendImage(message.from,path.join(__dirname,"./PROMO/promo3.jpg"))
                     await client.sendImage(message.from,path.join(__dirname,"./PROMO/promo4.jpg")) },
                 ATEND: async function atend(){
-                    await client.sendContact(ATENDENTE,message.from,);
+                    await client.sendContact(process.env.ATENDENTE,message.from,);
                     await client.sendText(message.from,"Tudo bem, sua mensagem foi enviada para um de nossos atendentes.")
                     await client.sendText(message.from,"Em instantes iremos atendê-lo")
                     await client.sendText(ATENDENTE,"Solicitou atendimento")
                 }      
             }
-            const question = [' Tudo bem? Sou o assistente virtual do salão MAURO CHRISOSTISMO. Selecione uma das opçoes:\n1.Agendar\n2.Local\n3.Profissionais\n4.Promoçoes\n5.Serviços\n6.Falar com o atendente'];
+            const question = [' Tudo bem? Sou o assistente virtual do salão MAURO CHRISOSTISMO. Selecione uma das opçoes:\n1.Agendar\n2.Local\n3.Promoçoes\n4.Serviços\n5.Falar com o atendente'];
             const filter = m => m.from === message.from;
             const collector = client.createMessageCollector(message.from, filter,{
                 max: 10,
@@ -69,20 +70,8 @@ function start(client = Client) {
                             case "local" :           
                                 RES.LOCAL();//envia a localização
                                 collector.stop((msg)=>{return msg})                
-                                break;
-                            case "3" :                 
-                                await client.sendText (message.from,"Em construção")
-                                collector.stop((msg)=>{return msg})             
-                                break;
-                            case "Profissionais"  :             
-                                await client.sendText (message.from,"Em construção")
-                                collector.stop((msg)=>{return msg})              
                                 break; 
-                            case  "profissionais" :                    
-                                await client.sendText (message.from,"Em construção")
-                                collector.stop((msg)=>{return msg})                         
-                                break;  
-                            case "4"  :
+                            case "3"  :
                                 RES.PROMO()// Envia as promocoes 
                                 collector.stop((msg)=>{return msg});                     
                                 break;
@@ -102,7 +91,7 @@ function start(client = Client) {
                                 RES.PROMO()// Envia as promocoes
                                 collector.stop((msg)=>{return msg})  
                                 break;
-                            case "5"  :
+                            case "4"  :
                                 await client.sendText (message.from,"Em construção")
                                 collector.stop((msg)=>{return msg})                    
                                 break;
@@ -122,7 +111,7 @@ function start(client = Client) {
                                 await client.sendText (message.from,"Em construção")
                                 collector.stop((msg)=>{return msg})            
                                 break;
-                            case  "6" :                       
+                            case  "5" :                       
                                 RES.ATEND() // resposta do atendimento
                                
                                 // collector.stop((msg)=>{return msg})                                 
