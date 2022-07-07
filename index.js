@@ -18,7 +18,6 @@ function start(client = Client) {
 
 
         if (message.text == "!test") {
-                 // envia as promocoes
             const RES = {
                 LOCAL: async function local(){
                     await client.sendLocation(message.from,-22.759554355246195, -43.454976461120516, "Av. Dr. Mario Guimarães, 318 - Centro, Nova Iguaçu - RJ, 26255-230")},
@@ -26,7 +25,13 @@ function start(client = Client) {
                     await client.sendImage(message.from,path.join(__dirname,"./PROMO/promo1.jpg"))
                     await client.sendImage(message.from,path.join(__dirname,"./PROMO/promo2.jpg"))
                     await client.sendImage(message.from,path.join(__dirname,"./PROMO/promo3.jpg"))
-                    await client.sendImage(message.from,path.join(__dirname,"./PROMO/promo4.jpg")) }  
+                    await client.sendImage(message.from,path.join(__dirname,"./PROMO/promo4.jpg")) },
+                ATEND: async function atend(){
+                    await client.sendContact(ATENDENTE,message.from,);
+                    await client.sendText(message.from,"Tudo bem, sua mensagem foi enviada para um de nossos atendentes.")
+                    await client.sendText(message.from,"Em instantes iremos atendê-lo")
+                    await client.sendText(ATENDENTE,"Solicitou atendimento")
+                }      
             }
             const question = [' Tudo bem? Sou o assistente virtual do salão MAURO CHRISOSTISMO. Selecione uma das opçoes:\n1.Agendar\n2.Local\n3.Profissionais\n4.Promoçoes\n5.Serviços\n6.Falar com o atendente'];
             const filter = m => m.from === message.from;
@@ -54,15 +59,15 @@ function start(client = Client) {
                                 collector.stop((msg)=>{return msg})             
                                 break;
                             case "2" || "Local"|| "local" :            
-                                RES.LOCAL();
+                                RES.LOCAL(); //envia a localização
                                 collector.stop((msg)=>{return msg})           
                                 break;
                             case  "Local" :          
-                                await client.sendLocation(message.from,-22.759554355246195, -43.454976461120516, "Av. Dr. Mario Guimarães, 318 - Centro, Nova Iguaçu - RJ, 26255-230")
+                                RES.LOCAL();//envia a localização
                                 collector.stop((msg)=>{return msg})                  
                                 break;
                             case "local" :           
-                                await client.sendLocation(message.from,-22.759554355246195, -43.454976461120516, "Av. Dr. Mario Guimarães, 318 - Centro, Nova Iguaçu - RJ, 26255-230")
+                                RES.LOCAL();//envia a localização
                                 collector.stop((msg)=>{return msg})                
                                 break;
                             case "3" :                 
@@ -118,24 +123,17 @@ function start(client = Client) {
                                 collector.stop((msg)=>{return msg})            
                                 break;
                             case  "6" :                       
-                                await client.sendContact(ATENDENTE,message.from,);
-                                await client.sendText(message.from,"Tudo bem, sua mensagem foi enviada para um de nossos atendentes.")
-                                await client.sendText(message.from,"Em instantes iremos atendê-lo")
-                                await client.sendText(ATENDENTE,"Solicitou atendimento")
+                                RES.ATEND() // resposta do atendimento
                                
                                 // collector.stop((msg)=>{return msg})                                 
                                 break;
                             case  "Atendimento" :
-                                await client.sendContact(ATENDENTE,message.from,);
-                                await client.sendText(message.from,"Tudo bem, sua mensagem foi enviada para um de nossos atendentes.")
-                                await client.sendText(message.from,"Em instantes iremos atendê-lo")
-                                await client.sendText(ATENDENTE,"Solicitou atendimento")
-                                collector.dispose(message => message)                     
+                                RES.ATEND() // resposta do atendimento               
                                 break;
                             default:
-                                await client.sendText(message.from,`opção inválida`);
-                                // collector.stop((msg)=>{return msg})
-                                break;
+                                // await client.sendText(message.from,`opção inválida`);
+                                // // collector.stop((msg)=>{return msg})
+                                // break;
                         }
                     }
             })
