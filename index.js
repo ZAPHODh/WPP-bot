@@ -1,4 +1,4 @@
-const { create, Client, decryptMedia, timePromise } = require('@open-wa/wa-automate');
+const { create, Client, decryptMedia } = require('@open-wa/wa-automate');
 const mime = require('mime-types');
 const path = require('path')
 const fs = require('fs');
@@ -14,13 +14,12 @@ function start(client = Client) {
 
 
     client.onAnyMessage(async message => {
-
-    
-
-
+        let ignore = []
+        let state = 1; //state 1 significa ativo, ele irá coletar a mensagem. state 0 significa que irá ignorar as mensagens
         if (message.text == "!test") {
+            
             const RES = {
-                LOCAL: async function local(){
+                LOCAL: async function local (){
                     await client.sendLocation(message.from,-22.759554355246195, -43.454976461120516, "Av. Dr. Mario Guimarães, 318 - Centro, Nova Iguaçu - RJ, 26255-230")},
                 PROMO: async function promo(){
                     await client.sendImage(message.from,path.join(__dirname,"./PROMO/promo1.jpg"))
@@ -31,7 +30,7 @@ function start(client = Client) {
                     await client.sendContact(process.env.ATENDENTE,message.from,);
                     await client.sendText(message.from,"Tudo bem, sua mensagem foi enviada para um de nossos atendentes.")
                     await client.sendText(message.from,"Em instantes iremos atendê-lo")
-                    await client.sendText(ATENDENTE,"Solicitou atendimento")
+                    await client.sendText(process.env.ATENDENTE,"Solicitou atendimento")
                 }      
             }
             const question = [' Tudo bem? Sou o assistente virtual do salão MAURO CHRISOSTISMO. Selecione uma das opçoes:\n1.Agendar\n2.Local\n3.Promoçoes\n4.Serviços\n5.Falar com o atendente'];
@@ -40,7 +39,10 @@ function start(client = Client) {
                 max: 10,
                 time: 1000 *60 //15 secs
             } )
-            await client.sendText(message.from, `Olá,${message.notifyName}. ${question[0]}`);
+            if(ignore.filter((ignored)=>{return ignored ===message.from }) ){}
+            else{
+            if(state == 1){
+            await client.sendText(message.from, `Olá, ${message.notifyName}. ${question[0]}`);
 
             collector.on('collect', 
                 async (m) =>{
@@ -111,13 +113,18 @@ function start(client = Client) {
                                 await client.sendText (message.from,"Em construção")
                                 collector.stop((msg)=>{return msg})            
                                 break;
-                            case  "5" :                       
+                            case  "5" :                     
                                 RES.ATEND() // resposta do atendimento
-                               
-                                // collector.stop((msg)=>{return msg})                                 
+                                ignore.push(message.from);
+                                console.log(ignore)                             
                                 break;
                             case  "Atendimento" :
-                                RES.ATEND() // resposta do atendimento               
+                                RES.ATEND()
+                                ignore.push(message.from)
+                                setTimeout((ignored)=>{ignored !=message.from})
+                                console.log(ignore)
+                                // resposta do atendimento
+                                state = 0;               
                                 break;
                             default:
                                 // await client.sendText(message.from,`opção inválida`);
@@ -127,6 +134,8 @@ function start(client = Client) {
                     }
             })
         }
+    }
+}
     })
 
     client.onAnyMessage(async message => {
