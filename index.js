@@ -3,19 +3,21 @@ const mime = require('mime-types');
 const path = require('path')
 const fs = require('fs');
 const fetch = require('node-fetch');
+const yt = require('youtube-search-without-api-key');
+const YoutubeMp3Downloader = require("youtube-mp3-downloader");
+const ffmpeg = require('ffmpeg');
 require("dotenv").config()
 
-
+let ignore = []
+let state = 1; //state 1 significa ativo, ele irá coletar a mensagem. state 0 significa que irá ignorar as mensagens
 
 
 
 
 function start(client = Client) {
-
+    
 
     client.onAnyMessage(async message => {
-        let ignore = []
-        let state = 1; //state 1 significa ativo, ele irá coletar a mensagem. state 0 significa que irá ignorar as mensagens
         if (message.text == "!test") {
             
             const RES = {
@@ -39,7 +41,7 @@ function start(client = Client) {
                 max: 10,
                 time: 1000 *60 //15 secs
             } )
-            if(ignore.filter((ignored)=>{return ignored ===message.from }) ){}
+            if (ignore.includes(message.from)) {}
             else{
             if(state == 1){
             await client.sendText(message.from, `Olá, ${message.notifyName}. ${question[0]}`);
@@ -116,16 +118,16 @@ function start(client = Client) {
                             case  "5" :                     
                                 RES.ATEND() // resposta do atendimento
                                 ignore.push(message.from);
+                                setTimeout(()=>{ignore = ignore.filter(id => id !== message.from)},1000 * 15 )
                                 console.log(ignore)                             
-                                break;
+                                return;
                             case  "Atendimento" :
                                 RES.ATEND()
                                 ignore.push(message.from)
-                                setTimeout((ignored)=>{ignored !=message.from})
+                                setTimeout(ignore = ignore.filter(id => id !== message.from),1000 * 15 )
                                 console.log(ignore)
                                 // resposta do atendimento
-                                state = 0;               
-                                break;
+                                return;
                             default:
                                 // await client.sendText(message.from,`opção inválida`);
                                 // // collector.stop((msg)=>{return msg})
@@ -139,7 +141,7 @@ function start(client = Client) {
     })
 
     client.onAnyMessage(async message => {
-        if (message.caption == "Figurinha" || message.caption == "Sticker") {
+        if (message.text == "Figurinha" || message.text == "Sticker") {
             const mediaData = await decryptMedia(message);
             const imageBase64 = `data:${message.mimetype};base64,${mediaData.toString(
                 'base64'
@@ -151,6 +153,26 @@ function start(client = Client) {
 
             )
         }
+        if(message.text.charAt(0)== "!" && message.text.charAt(1)== "y" && message.text.charAt(2)== "t"){
+            let content = message.text.substring(4)
+            const video = await yt.search(content).catch(err=> err);
+            let YD =  new YoutubeMp3Downloader({
+            "ffmpegPath": "C:/PATH_Programs/ffmpeg",        // FFmpeg binary location
+            "outputPath": path.join(__dirname),    // Output file location (default: the home directory)
+            "youtubeVideoQuality": "highestaudio",  // Desired video quality (default: highestaudio)
+            "queueParallelism": 2,                  // Download parallelism (default: 1)
+            "progressTimeout": 2000,                // Interval in ms for the progress reports (default: 1000)
+            "allowWebm": false
+            })
+            YD.download(video[0].url.substring(32))
+            YD.on("finished",async  function(err, data) {
+                    console.log(data)
+                await client.sendImage(message.from,data.thumbnail)
+                await  client.sendFile(message.from, data.file)
+                fs.unlink(data.file,(err)=>{if(err){console.log(err)}})
+            })
+        }
+            
         // fs.writeFile(filename, mediaData, function (err) {
         //     if (err) {
         //         return console.log(err);
@@ -163,7 +185,7 @@ function start(client = Client) {
             
         //     fetch(`https://economia.awesomeapi.com.br/last/${valor}-BRL`).then(res => { return res.json() }).then(async data => await client.sendText(message.from, "Cotação atual: " + data.USDBRL.bid));
         // }
-    });
+}});
 }
 
 create().then(client => start(client));
