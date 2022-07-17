@@ -10,10 +10,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@open-wa/wa-automate": "^4.42.4",
+    "@open-wa/wa-automate": "^4.42.7",
     "dotenv": "^16.0.1",
-    "ffmpeg": "^0.0.4",
-    "fluent-ffmpeg": "^2.1.2",
     "node-fetch": "^2.6.7",
     "youtube-mp3-downloader": "^0.7.10",
     "youtube-search-without-api-key": "^1.0.7"

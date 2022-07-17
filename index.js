@@ -5,15 +5,15 @@ const fs = require('fs');
 const fetch = require('node-fetch');
 const yt = require('youtube-search-without-api-key');
 const YoutubeMp3Downloader = require("youtube-mp3-downloader");
-const ffmpeg = require('ffmpeg');
+const parseString = require('xml2js').parseString;
 require("dotenv").config()
-
+let  coin =process.env.XML ;
 let ignore = []
 let state = 1; //state 1 significa ativo, ele irá coletar a mensagem. state 0 significa que irá ignorar as mensagens
 
 
 
-
+//onde tudo acontece
 function start(client = Client) {
     
 
@@ -154,38 +154,48 @@ function start(client = Client) {
             )
         }
         if(message.text.charAt(0)== "!" && message.text.charAt(1)== "y" && message.text.charAt(2)== "t"){
-            let content = message.text.substring(4)
+            let content = message.text.substring(3)
             const video = await yt.search(content).catch(err=> err);
-            let YD =  new YoutubeMp3Downloader({
-            "ffmpegPath": "C:/PATH_Programs/ffmpeg",        // FFmpeg binary location
-            "outputPath": path.join(__dirname),    // Output file location (default: the home directory)
-            "youtubeVideoQuality": "highestaudio",  // Desired video quality (default: highestaudio)
-            "queueParallelism": 2,                  // Download parallelism (default: 1)
-            "progressTimeout": 2000,                // Interval in ms for the progress reports (default: 1000)
-            "allowWebm": false
-            })
-            YD.download(video[0].url.substring(32))
+                let YD =  new YoutubeMp3Downloader({
+                    "ffmpegPath": "C:/PATH_Programs/ffmpeg",       
+                    "outputPath": path.join(__dirname),    
+                    "youtubeVideoQuality": "highestaudio",  
+                    "queueParallelism": 2,                  
+                    "progressTimeout": 2000,                
+                    "allowWebm": false
+                })
+            try{YD.download(video[0].url.substring(32))}
+            catch{ client.sendText(message.from,"vídeo não encontrado")}
             YD.on("finished",async  function(err, data) {
-                    console.log(data)
-                await client.sendImage(message.from,data.thumbnail)
-                await  client.sendFile(message.from, data.file)
+                    
+                try{await  client.sendFile(message.from, data.file)
+                    await client.sendText(message.from,data.videoTitle)        
+                }
+                catch{ await client.sendText(message.from, "Vídeo grande demais")}
                 fs.unlink(data.file,(err)=>{if(err){console.log(err)}})
-            })
-        }
-            
+            }) 
+    }
         // fs.writeFile(filename, mediaData, function (err) {
         //     if (err) {
         //         return console.log(err);
         //     }
         //     console.log('The file was saved!');
         // });
-        // if (message.body == `!coin USD`) {
-        //     let valor = message.body.substring(6);
-        //     console.log(valor)
+        if (message.body.includes("!coin")) {
+            let valor = message.body.substring(6).toUpperCase();
+            const BRL = "BRL"
+           
+            console.log(valor+BRL)
             
-        //     fetch(`https://economia.awesomeapi.com.br/last/${valor}-BRL`).then(res => { return res.json() }).then(async data => await client.sendText(message.from, "Cotação atual: " + data.USDBRL.bid));
-        // }
-}});
+            fetch(`https://economia.awesomeapi.com.br/last/${valor}-BRL`).then(res => { return res.json() }).then(async data =>{
+                const sub = valor+BRL; 
+                try{await client.sendText(message.from, "Cotação atual: " +data[sub].bid)}
+                catch{
+                    await client.sendText(message.from, "Moeda não encontrada, Moedas disponíveis:" + coin)
+            }
+            });
+        }
+});
 }
 
 create().then(client => start(client));
