@@ -1,25 +1,38 @@
-const { create, Client, decryptMedia } = require('@open-wa/wa-automate');
+const { create, Client, decryptMedia,ParticipantChangedEventModel } = require('@open-wa/wa-automate');
 const mime = require('mime-types');
 const path = require('path')
 const fs = require('fs');
 const fetch = require('node-fetch');
 const yt = require('youtube-search-without-api-key');
 const YoutubeMp3Downloader = require("youtube-mp3-downloader");
-const parseString = require('xml2js').parseString;
 require("dotenv").config()
-let  coin =process.env.XML ;
+const coin=process.env.XML ;
 let ignore = []
-let state = 1; //state 1 significa ativo, ele irá coletar a mensagem. state 0 significa que irá ignorar as mensagens
-
-
+let curso = false;
 
 //onde tudo acontece
 function start(client = Client) {
-    
-
     client.onAnyMessage(async message => {
-        if (message.text == "!test") {
-            
+
+
+        if(message.from == process.env.ATENDENTE && message.text.includes("Concluído")){
+            ignore = ignore.filter(ignored = ignore != message.sender)  
+        }
+        if(message.text.includes("!r")){
+            if(message.quotedMsg == null){
+                client.sendText(message.from,"Você não selecionou alguém para banir")
+            }
+            else{
+           await  client.removeParticipant(message.chat.groupMetadata.id,message.quotedMsg.author) 
+            }
+        }
+        if(message.text == "arroz" && message.sender.profilePicThumbObj != {}){
+
+            console.log(message);
+           await  client.sendImage(message.from,message.sender.profilePicThumbObj.imgFull,message.sender.profilePicThumbObj.imgFull)
+        }
+
+        if (message.text == "!test") {            
             const RES = {
                 LOCAL: async function local (){
                     await client.sendLocation(message.from,-22.759554355246195, -43.454976461120516, "Av. Dr. Mario Guimarães, 318 - Centro, Nova Iguaçu - RJ, 26255-230")},
@@ -35,7 +48,7 @@ function start(client = Client) {
                     await client.sendText(process.env.ATENDENTE,"Solicitou atendimento")
                 }      
             }
-            const question = [' Tudo bem? Sou o assistente virtual do salão MAURO CHRISOSTISMO. Selecione uma das opçoes:\n1.Agendar\n2.Local\n3.Promoçoes\n4.Serviços\n5.Falar com o atendente'];
+            const question = [' Tudo bem? Sou o assistente virtual do salão MAURO CHRISOSTISMO. Selecione uma das opçoes:\n1.Agendar\n2.Local\n3.Promoçoes\n4.Serviços\n5.Falar com o atendente\n6.Curso'];
             const filter = m => m.from === message.from;
             const collector = client.createMessageCollector(message.from, filter,{
                 max: 10,
@@ -43,7 +56,6 @@ function start(client = Client) {
             } )
             if (ignore.includes(message.from)) {}
             else{
-            if(state == 1){
             await client.sendText(message.from, `Olá, ${message.notifyName}. ${question[0]}`);
 
             collector.on('collect', 
@@ -55,91 +67,36 @@ function start(client = Client) {
                                 await client.sendText(message.from, "Em construção")
                                 collector.stop((msg)=>{return msg})          
                                 break;
-                            case "Agendar":               
-                                await client.sendText(message.from, "Em construção")
-                                collector.stop((msg)=>{return msg})              
-                                break;
-                            case "agendar":        
-                                await client.sendText(message.from, "Em construção")
-                                collector.stop((msg)=>{return msg})             
-                                break;
                             case "2" || "Local"|| "local" :            
                                 RES.LOCAL(); //envia a localização
                                 collector.stop((msg)=>{return msg})           
                                 break;
-                            case  "Local" :          
-                                RES.LOCAL();//envia a localização
-                                collector.stop((msg)=>{return msg})                  
-                                break;
-                            case "local" :           
-                                RES.LOCAL();//envia a localização
-                                collector.stop((msg)=>{return msg})                
-                                break; 
                             case "3"  :
                                 RES.PROMO()// Envia as promocoes 
                                 collector.stop((msg)=>{return msg});                     
-                                break;
-                            case  "Promoções" :
-                                RES.PROMO()// Envia as promocoes 
-                                collector.stop((msg)=>{return msg})  
-                                break;
-                            case "promoções"  :
-                                RES.PROMO()// Envia as promocoes 
-                                collector.stop((msg)=>{return msg})                      
-                                break;
-                            case  "Promocoes"  :                                
-                                RES.PROMO()// Envia as promocoes 
-                                collector.stop((msg)=>{return msg})  
-                                break;
-                            case "promocoes" :
-                                RES.PROMO()// Envia as promocoes
-                                collector.stop((msg)=>{return msg})  
                                 break;
                             case "4"  :
                                 await client.sendText (message.from,"Em construção")
                                 collector.stop((msg)=>{return msg})                    
                                 break;
-                            case  "Serviços"  :
-                                await client.sendText (message.from,"Em construção")
-                                collector.stop((msg)=>{return msg})                     
-                                break;
-                            case  "serviços"  :                     
-                                await client.sendText (message.from,"Em construção")
-                                collector.stop((msg)=>{return msg})                     
-                                break;
-                            case  "Servicos"  :             
-                                await client.sendText (message.from,"Em construção")
-                                collector.stop((msg)=>{return msg})                 
-                                break;
-                            case  "servicos" :          
-                                await client.sendText (message.from,"Em construção")
-                                collector.stop((msg)=>{return msg})            
-                                break;
                             case  "5" :                     
                                 RES.ATEND() // resposta do atendimento
                                 ignore.push(message.from);
-                                setTimeout(()=>{ignore = ignore.filter(id => id !== message.from)},1000 * 15 )
+                                setTimeout(()=>{ignore = ignore.filter(id => id !== message.from)},1000 * 15 * 60 )
                                 console.log(ignore)                             
                                 return;
-                            case  "Atendimento" :
-                                RES.ATEND()
-                                ignore.push(message.from)
-                                setTimeout(ignore = ignore.filter(id => id !== message.from),1000 * 15 )
-                                console.log(ignore)
-                                // resposta do atendimento
-                                return;
+                            case "6":
+
                             default:
                                 // await client.sendText(message.from,`opção inválida`);
                                 // // collector.stop((msg)=>{return msg})
                                 // break;
+                            }
                         }
-                    }
-            })
-        }
-    }
-}
-    })
-
+                    })
+                }
+            }
+        })
     client.onAnyMessage(async message => {
         if (message.text == "Figurinha" || message.text == "Sticker") {
             const mediaData = await decryptMedia(message);
@@ -153,6 +110,7 @@ function start(client = Client) {
 
             )
         }
+        // if(message.text.includes("!yt"))
         if(message.text.charAt(0)== "!" && message.text.charAt(1)== "y" && message.text.charAt(2)== "t"){
             let content = message.text.substring(3)
             const video = await yt.search(content).catch(err=> err);
@@ -174,28 +132,51 @@ function start(client = Client) {
                 catch{ await client.sendText(message.from, "Vídeo grande demais")}
                 fs.unlink(data.file,(err)=>{if(err){console.log(err)}})
             }) 
-    }
+        }
         // fs.writeFile(filename, mediaData, function (err) {
         //     if (err) {
         //         return console.log(err);
         //     }
         //     console.log('The file was saved!');
         // });
-        if (message.body.includes("!coin")) {
-            let valor = message.body.substring(6).toUpperCase();
+        if (message.body.includes("!CP")) {
+            let valor = message.body.substring(4).toUpperCase();
             const BRL = "BRL"
-           
-            console.log(valor+BRL)
-            
-            fetch(`https://economia.awesomeapi.com.br/last/${valor}-BRL`).then(res => { return res.json() }).then(async data =>{
-                const sub = valor+BRL; 
-                try{await client.sendText(message.from, "Cotação atual: " +data[sub].bid)}
-                catch{
-                    await client.sendText(message.from, "Moeda não encontrada, Moedas disponíveis:" + coin)
+            const filter = m=> m.from == message.from
+            const collectorCoin = client.createMessageCollector(message.from,filter,{time:1000 *60,
+            max:1
+            })
+            client.sendText(message.from, "agora diga o período")
+            collectorCoin.on("collect",(periodo)=>{
+                   if (periodo){
+                       let primary = periodo.text.substring(0,8)
+                       let secondary = periodo.text.substring(9)
+                       try{fetch(`https://economia.awesomeapi.com.br/json/daily/${valor}-BRL/?start_date=${primary}&end_date=${secondary}`).then(res => { return res.json() }).then(async data =>{
+                        console.log(data)
+                       await client.sendText(message.from,"Alta:"+data[0].high + "\nBaixa:"+data[0].low)})}
+                       catch{
+                                 await client.sendText(message.from, "Moeda não encontrada, Moedas disponíveis:" + coin)
+                         }
+                   }
+            })
+            if (message.body.includes("!coin")) {
+                let valor = message.body.substring(6).toUpperCase();
+                const BRL = "BRL"
+                fetch(`https://economia.awesomeapi.com.br/last/${valor}-BRL`).then(res => { return res.json() }).then(async data =>{
+                    const sub = valor+BRL; 
+                    try{
+                        await client.sendText(message.from, "Cotação atual: " +data[sub].bid)}
+                    catch{
+                        await client.sendText(message.from, "Moeda não encontrada, Moedas disponíveis:" + coin)
+                    }
+                });
             }
-            });
         }
-});
+    });
 }
 
-create().then(client => start(client));
+create({ executablePath: 'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+    headless: false,
+    autoRefresh:true,
+    cacheEnabled:false,
+    customUserAgent: 'some custom user agent'}).then(client => start(client));
