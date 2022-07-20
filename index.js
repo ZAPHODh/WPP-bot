@@ -5,34 +5,59 @@ const fs = require('fs');
 const fetch = require('node-fetch');
 const yt = require('youtube-search-without-api-key');
 const YoutubeMp3Downloader = require("youtube-mp3-downloader");
+const translate = require('@vitalets/google-translate-api');
 require("dotenv").config()
 const coin=process.env.XML ;
 let ignore = []
 let curso = false;
 
+
 //onde tudo acontece
 function start(client = Client) {
+
+    client.onIncomingCall(async call=>{
+        console.log(call);
+        await client.sendText(call.peerJid, 'Para de ligar ai o cuzão');
+    });
+
     client.onAnyMessage(async message => {
 
 
+        if(message.text.includes("!tr") && message.quotedMsg !=null){
+            let language = message.text.substring(4);
+            let text = message.quotedMsg.content;          
+            try{
+                const res =await translate(text,{to:language});
+                await  client.sendText(message.from,res.text)
+            }
+            catch{
+                await client.sendText(message.from, "Linguagem não encontrada")
+            }
+            
+           
+        }
         if(message.from == process.env.ATENDENTE && message.text.includes("Concluído")){
             ignore = ignore.filter(ignored = ignore != message.sender)  
+            console.log(ignore);
+            console.log("usuário excluído do ignore")
         }
+
         if(message.text.includes("!r")){
             if(message.quotedMsg == null){
                 client.sendText(message.from,"Você não selecionou alguém para banir")
             }
             else{
-           await  client.removeParticipant(message.chat.groupMetadata.id,message.quotedMsg.author) 
+                await  client.removeParticipant(message.chat.groupMetadata.id,message.quotedMsg.author) 
             }
         }
-        if(message.text == "arroz" && message.sender.profilePicThumbObj != {}){
 
-            console.log(message);
-           await  client.sendImage(message.from,message.sender.profilePicThumbObj.imgFull,message.sender.profilePicThumbObj.imgFull)
+        if(message.text == "arroz" && message.sender.profilePicThumbObj.imgFull !=null){
+            console.log(message)
+            console.log(message.sender.profilePicThumbObj);
+            await  client.sendImage(message.from,message.sender.profilePicThumbObj.imgFull,message.sender.profilePicThumbObj.imgFull,"ó sua foto",message.from)
         }
 
-        if (message.text == "!test") {            
+        if (message.text == "!test") {        
             const RES = {
                 LOCAL: async function local (){
                     await client.sendLocation(message.from,-22.759554355246195, -43.454976461120516, "Av. Dr. Mario Guimarães, 318 - Centro, Nova Iguaçu - RJ, 26255-230")},
@@ -110,7 +135,6 @@ function start(client = Client) {
 
             )
         }
-        // if(message.text.includes("!yt"))
         if(message.text.charAt(0)== "!" && message.text.charAt(1)== "y" && message.text.charAt(2)== "t"){
             let content = message.text.substring(3)
             const video = await yt.search(content).catch(err=> err);
@@ -133,12 +157,6 @@ function start(client = Client) {
                 fs.unlink(data.file,(err)=>{if(err){console.log(err)}})
             }) 
         }
-        // fs.writeFile(filename, mediaData, function (err) {
-        //     if (err) {
-        //         return console.log(err);
-        //     }
-        //     console.log('The file was saved!');
-        // });
         if (message.body.includes("!CP")) {
             let valor = message.body.substring(4).toUpperCase();
             const BRL = "BRL"
@@ -147,19 +165,21 @@ function start(client = Client) {
             max:1
             })
             client.sendText(message.from, "agora diga o período")
-            collectorCoin.on("collect",(periodo)=>{
-                   if (periodo){
-                       let primary = periodo.text.substring(0,8)
-                       let secondary = periodo.text.substring(9)
-                       try{fetch(`https://economia.awesomeapi.com.br/json/daily/${valor}-BRL/?start_date=${primary}&end_date=${secondary}`).then(res => { return res.json() }).then(async data =>{
+            collectorCoin.on("collect",async (periodo)=>{
+                if (periodo){
+                    let primary = periodo.text.substring(0,8)
+                    let secondary = periodo.text.substring(9)
+                    try{
+                        fetch(`https://economia.awesomeapi.com.br/json/daily/${valor}-BRL/?start_date=${primary}&end_date=${secondary}`).then(res => { return res.json() }).then(async data =>{
                         console.log(data)
-                       await client.sendText(message.from,"Alta:"+data[0].high + "\nBaixa:"+data[0].low)})}
-                       catch{
-                                 await client.sendText(message.from, "Moeda não encontrada, Moedas disponíveis:" + coin)
-                         }
-                   }
+                        await client.sendText(message.from,"Alta:"+data[0].high + "\nBaixa:"+data[0].low)})
+                    }
+                    catch{
+                        await client.sendText(message.from, "Moeda não encontrada, Moedas disponíveis:" + coin)
+                    }
+                }
             })
-            if (message.body.includes("!coin")) {
+            if(message.body.includes("!coin")) {
                 let valor = message.body.substring(6).toUpperCase();
                 const BRL = "BRL"
                 fetch(`https://economia.awesomeapi.com.br/last/${valor}-BRL`).then(res => { return res.json() }).then(async data =>{
@@ -175,8 +195,4 @@ function start(client = Client) {
     });
 }
 
-create({ executablePath: 'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
-    headless: false,
-    autoRefresh:true,
-    cacheEnabled:false,
-    customUserAgent: 'some custom user agent'}).then(client => start(client));
+create().then(client => start(client));
