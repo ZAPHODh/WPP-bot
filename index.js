@@ -1,41 +1,107 @@
+const TraducaoFun= require("./functions/TraducaoFun")
+const speech = require('@google-cloud/speech');
 const { create, Client, decryptMedia,ParticipantChangedEventModel } = require('@open-wa/wa-automate');
+const tesseract = require("node-tesseract-ocr")
 const mime = require('mime-types');
 const path = require('path')
 const fs = require('fs');
 const fetch = require('node-fetch');
 const yt = require('youtube-search-without-api-key');
 const YoutubeMp3Downloader = require("youtube-mp3-downloader");
-const translate = require('@vitalets/google-translate-api');
+
 require("dotenv").config()
 const coin=process.env.XML ;
 let ignore = []
 let curso = false;
+const speechClient = new speech.SpeechClient();
 
-
+     
 //onde tudo acontece
-function start(client = Client) {
+async function start(client = Client) {
+    // const unreadMessages = await client.getAllUnreadMessages();
+    // unreadMessages.forEach(processMessage)
+   
+
+
+
 
     client.onIncomingCall(async call=>{
-        console.log(call);
         await client.sendText(call.peerJid, 'Para de ligar ai o cuzão');
     });
-
     client.onAnyMessage(async message => {
-
-
         if(message.text.includes("!tr") && message.quotedMsg !=null){
-            let language = message.text.substring(4);
-            let text = message.quotedMsg.content;          
-            try{
-                const res =await translate(text,{to:language});
-                await  client.sendText(message.from,res.text)
-            }
-            catch{
-                await client.sendText(message.from, "Linguagem não encontrada")
-            }
-            
-           
+           await client.sendText(message.from, await  TraducaoFun(message));
         }
+        if(message.text.includes("!def")){
+            if(message.quotedMsg){}
+            else{
+            let word = message.text.substring(4)
+            fetch(`https://significado.herokuapp.com/${word}`).then(async res=>{
+                return res.json()}).then(async data=>{
+                    console.log(data)
+                try{await client.sendText(message.from,`${data[0].class}\nSignifiado: ${data[0].meanings}\nEtimologia: ${data[0].etymology}`)}
+                catch{await client.sendText(message.from,"palavra nao encontrada")}
+            })
+            }
+        }
+        if(message.text.includes("!totext") && message.quotedMsg !=null){
+
+            // let lang = message.text.substring(8)
+
+            const config = {
+
+                
+                oem: 3,
+                psm: 3,
+              }
+            const filename = `${message.t}.${mime.extension(message.quotedMsg.mimetype)}`;
+            const mediaData = await decryptMedia(message.quotedMsg);
+            const imageBase64 = `data:${message.quotedMsg.mimetype};base64,${mediaData.toString('base64')}`
+            fs.writeFile(filename, mediaData, function(err) {
+                if (err) {
+                  return console.log(err);
+                }
+              });
+           await tesseract.recognize(filename,config).then(async (text)=>{ await client.sendText(message.from,text)
+            fs.unlink(filename,(err)=>{if(err){console.log(err)}})
+        
+        
+        })
+        }
+
+        // if(message.text.includes("abobra" ) && message.quotedMsg != null){
+            
+            
+        //     console.log(message)
+        //     const filename = `${message.t}.${mime.extension(message.quotedMsg.mimetype)}`;
+        //     const mediaData = await decryptMedia(message.quotedMsg);
+        //     const mediaBase64 = `data:${message.quotedMsg.mimetype};base64,${mediaData.toString('base64')}`
+
+        //     fs.writeFile(filename, mediaData, function(err) {
+        //         if (err) {
+        //          return console.log(err);
+        //         }
+        //         console.log('The file was saved!');
+        //     });
+
+
+        //     const audio = {content:mediaBase64}
+
+        //     const config = {
+        //         encoding:'Base64',
+        //         sampleRateHertz:48000,
+        //         languageCode: "pt-BR"
+        //     }
+        //     const request ={
+        //         audio:audio,
+        //         config:config
+        //     }
+        //     const [response]= await speechClient.recognize(request)
+        //     const transcription =response.results.alternatives[0].transcript
+        //     await client.sendText(message.from,transcription)
+        //     fs.unlink(filename,(err)=>{if(err){console.log(err)}})
+
+        // }
         if(message.from == process.env.ATENDENTE && message.text.includes("Concluído")){
             ignore = ignore.filter(ignored = ignore != message.sender)  
             console.log(ignore);
@@ -140,7 +206,7 @@ function start(client = Client) {
             const video = await yt.search(content).catch(err=> err);
                 let YD =  new YoutubeMp3Downloader({
                     "ffmpegPath": "C:/PATH_Programs/ffmpeg",       
-                    "outputPath": path.join(__dirname),    
+                    "outputPath":"D:/WPP",    
                     "youtubeVideoQuality": "highestaudio",  
                     "queueParallelism": 2,                  
                     "progressTimeout": 2000,                
