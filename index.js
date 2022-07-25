@@ -1,19 +1,17 @@
+const DefinirFun = require("./functions/DefinirFun")
 const TraducaoFun= require("./functions/TraducaoFun")
-const speech = require('@google-cloud/speech');
-const { create, Client, decryptMedia,ParticipantChangedEventModel } = require('@open-wa/wa-automate');
-const tesseract = require("node-tesseract-ocr")
-const mime = require('mime-types');
+const TotextFun = require("./functions/TotextFun")
+const { create, Client, decryptMedia} = require('@open-wa/wa-automate');
 const path = require('path')
 const fs = require('fs');
 const fetch = require('node-fetch');
 const yt = require('youtube-search-without-api-key');
 const YoutubeMp3Downloader = require("youtube-mp3-downloader");
-
 require("dotenv").config()
 const coin=process.env.XML ;
 let ignore = []
 let curso = false;
-const speechClient = new speech.SpeechClient();
+
 
      
 //onde tudo acontece
@@ -26,82 +24,36 @@ async function start(client = Client) {
 
 
     client.onIncomingCall(async call=>{
-        await client.sendText(call.peerJid, 'Para de ligar ai o cuzão');
+        await client.sendText(call.peerJid, 'Para de ligar ai o cuzao');
     });
+
+
+
+
     client.onAnyMessage(async message => {
+
+
+
+        //Inicio da função de tradução
         if(message.text.includes("!tr") && message.quotedMsg !=null){
            await client.sendText(message.from, await  TraducaoFun(message));
         }
+        //fim da  função de traduçò
+
+        //inicio da função de definir
         if(message.text.includes("!def")){
-            if(message.quotedMsg){}
-            else{
-            let word = message.text.substring(4)
-            fetch(`https://significado.herokuapp.com/${word}`).then(async res=>{
-                return res.json()}).then(async data=>{
-                    console.log(data)
-                try{await client.sendText(message.from,`${data[0].class}\nSignifiado: ${data[0].meanings}\nEtimologia: ${data[0].etymology}`)}
-                catch{await client.sendText(message.from,"palavra nao encontrada")}
-            })
-            }
+              const dicionario = await   DefinirFun(message);
+                await client.sendText(message.from,`${dicionario[0].class}\nSignificado: ${dicionario[0].meanings}\nEtimologia: ${dicionario[0].etymology}`)               
         }
+        // fim da função de definir
+
+        //inicio da função de mudar imagem pra texto
         if(message.text.includes("!totext") && message.quotedMsg !=null){
-
-            // let lang = message.text.substring(8)
-
-            const config = {
-
-                
-                oem: 3,
-                psm: 3,
-              }
-            const filename = `${message.t}.${mime.extension(message.quotedMsg.mimetype)}`;
-            const mediaData = await decryptMedia(message.quotedMsg);
-            const imageBase64 = `data:${message.quotedMsg.mimetype};base64,${mediaData.toString('base64')}`
-            fs.writeFile(filename, mediaData, function(err) {
-                if (err) {
-                  return console.log(err);
-                }
-              });
-           await tesseract.recognize(filename,config).then(async (text)=>{ await client.sendText(message.from,text)
-            fs.unlink(filename,(err)=>{if(err){console.log(err)}})
-        
-        
-        })
+           let text = await  TotextFun(message)
+           await client.sendText(message.from,text)
         }
-
-        // if(message.text.includes("abobra" ) && message.quotedMsg != null){
-            
-            
-        //     console.log(message)
-        //     const filename = `${message.t}.${mime.extension(message.quotedMsg.mimetype)}`;
-        //     const mediaData = await decryptMedia(message.quotedMsg);
-        //     const mediaBase64 = `data:${message.quotedMsg.mimetype};base64,${mediaData.toString('base64')}`
-
-        //     fs.writeFile(filename, mediaData, function(err) {
-        //         if (err) {
-        //          return console.log(err);
-        //         }
-        //         console.log('The file was saved!');
-        //     });
-
-
-        //     const audio = {content:mediaBase64}
-
-        //     const config = {
-        //         encoding:'Base64',
-        //         sampleRateHertz:48000,
-        //         languageCode: "pt-BR"
-        //     }
-        //     const request ={
-        //         audio:audio,
-        //         config:config
-        //     }
-        //     const [response]= await speechClient.recognize(request)
-        //     const transcription =response.results.alternatives[0].transcript
-        //     await client.sendText(message.from,transcription)
-        //     fs.unlink(filename,(err)=>{if(err){console.log(err)}})
-
-        // }
+        //fim da função de mudar imagem pra texto
+        
         if(message.from == process.env.ATENDENTE && message.text.includes("Concluído")){
             ignore = ignore.filter(ignored = ignore != message.sender)  
             console.log(ignore);
@@ -120,7 +72,8 @@ async function start(client = Client) {
         if(message.text == "arroz" && message.sender.profilePicThumbObj.imgFull !=null){
             console.log(message)
             console.log(message.sender.profilePicThumbObj);
-            await  client.sendImage(message.from,message.sender.profilePicThumbObj.imgFull,message.sender.profilePicThumbObj.imgFull,"ó sua foto",message.from)
+            let pic = await  client.getProfilePicFromServer(message.from)
+            await  client.sendImage(message.from,pic,pic,"ó como tu é lindo")
         }
 
         if (message.text == "!test") {        
@@ -187,14 +140,12 @@ async function start(client = Client) {
                     })
                 }
             }
-        })
-    client.onAnyMessage(async message => {
+        
         if (message.text == "Figurinha" || message.text == "Sticker") {
             const mediaData = await decryptMedia(message);
             const imageBase64 = `data:${message.mimetype};base64,${mediaData.toString(
                 'base64'
             )}`;
-
             await client.sendImageAsSticker(
                 message.from,
                 imageBase64,
@@ -223,7 +174,7 @@ async function start(client = Client) {
                 fs.unlink(data.file,(err)=>{if(err){console.log(err)}})
             }) 
         }
-        if (message.body.includes("!CP")) {
+        if (message.text.includes("!CP")) {
             let valor = message.body.substring(4).toUpperCase();
             const BRL = "BRL"
             const filter = m=> m.from == message.from
@@ -245,20 +196,20 @@ async function start(client = Client) {
                     }
                 }
             })
-            if(message.body.includes("!coin")) {
-                let valor = message.body.substring(6).toUpperCase();
-                const BRL = "BRL"
-                fetch(`https://economia.awesomeapi.com.br/last/${valor}-BRL`).then(res => { return res.json() }).then(async data =>{
-                    const sub = valor+BRL; 
-                    try{
-                        await client.sendText(message.from, "Cotação atual: " +data[sub].bid)}
-                    catch{
-                        await client.sendText(message.from, "Moeda não encontrada, Moedas disponíveis:" + coin)
+        }
+        if(message.text.includes("!coin")) {
+            let valor = message.body.substring(6).toUpperCase();
+            const BRL = "BRL"
+            fetch(`https://economia.awesomeapi.com.br/last/${valor}-BRL`).then(res => { return res.json() }).then(async data =>{
+                const sub = valor+BRL; 
+                try{
+                    await client.sendText(message.from, "Cotação atual: " +data[sub].bid)}
+                catch{
+                    await client.sendText(message.from, "Moeda não encontrada, Moedas disponíveis:" + coin)
                     }
                 });
-            }
         }
-    });
+    })
 }
 
 create().then(client => start(client));
