@@ -1,13 +1,12 @@
-const DefinirFun = require("./functions/DefinirFun")
-const TraducaoFun= require("./functions/TraducaoFun")
-const TotextFun = require("./functions/TotextFun")
+const DefinirFun = require('./functions/DefinirFun')
+const TraducaoFun= require('./functions/TraducaoFun')
+const TotextFun = require('./functions/TotextFun')
+const YTDFun =require('./functions/YTDFun')
 const { create, Client, decryptMedia} = require('@open-wa/wa-automate');
 const path = require('path')
 const fs = require('fs');
 const fetch = require('node-fetch');
-const yt = require('youtube-search-without-api-key');
-const YoutubeMp3Downloader = require("youtube-mp3-downloader");
-require("dotenv").config()
+require('dotenv').config()
 const coin=process.env.XML ;
 let ignore = []
 let curso = false;
@@ -153,25 +152,13 @@ async function start(client = Client) {
             )
         }
         if(message.text.charAt(0)== "!" && message.text.charAt(1)== "y" && message.text.charAt(2)== "t"){
-            let content = message.text.substring(3)
-            const video = await yt.search(content).catch(err=> err);
-                let YD =  new YoutubeMp3Downloader({
-                    "ffmpegPath": "C:/PATH_Programs/ffmpeg",       
-                    "outputPath":"D:/WPP",    
-                    "youtubeVideoQuality": "highestaudio",  
-                    "queueParallelism": 2,                  
-                    "progressTimeout": 2000,                
-                    "allowWebm": false
-                })
-            try{YD.download(video[0].url.substring(32))}
-            catch{ client.sendText(message.from,"vídeo não encontrado")}
-            YD.on("finished",async  function(err, data) {
-                    
-                try{await  client.sendFile(message.from, data.file)
-                    await client.sendText(message.from,data.videoTitle)        
+            const video = await  YTDFun(message);   
+            video.on("finished",async  function(err, data) {
+                try{
+                    await client.sendFile(message.from,data.file)
+                    fs.unlink(data.file,(err)=>{if(err)return err})
                 }
-                catch{ await client.sendText(message.from, "Vídeo grande demais")}
-                fs.unlink(data.file,(err)=>{if(err){console.log(err)}})
+                catch{await client.sendText(message.from,"video nao encontrado")}
             }) 
         }
         if (message.text.includes("!CP")) {
