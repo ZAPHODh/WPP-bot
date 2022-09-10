@@ -15,6 +15,7 @@
     "@vitalets/google-translate-api": "^8.0.0",
     "dictionary-pt": "^3.1.0",
     "dotenv": "^16.0.1",
+    "exceljs": "^4.3.0",
     "google-translate-api": "^2.3.0",
     "joi": "^17.6.0",
     "json-as-xlsx": "^2.4.2",
