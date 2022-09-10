@@ -1,0 +1,36 @@
+{
+  "name": "wpp",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@open-wa/wa-automate": "^4.46.2",
+    "@vitalets/google-translate-api": "^8.0.0",
+    "dictionary-pt": "^3.1.0",
+    "dotenv": "^16.0.1",
+    "google-translate-api": "^2.3.0",
+    "joi": "^17.6.0",
+    "json-as-xlsx": "^2.4.2",
+    "node-fetch": "^2.6.7",
+    "node-tesseract-ocr": "^2.2.1",
+    "search-engine-nodejs": "^1.0.9",
+    "youtube-mp3-downloader": "^0.7.10",
+    "youtube-search-without-api-key": "^1.0.7",
+    "ytdl-core": "^4.11.2"
+  },
+  "devDependencies": {
+    "@10up/eslint-config": "^2.4.6",
+    "@jsdevtools/eslint-config-modular": "^8.0.4",
+    "eslint": "^8.23.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "prettier": "^2.7.1"
+  }
+}

@@ -1,0 +1,11 @@
+
+node_modules
+PROMO
+# managed\
+package-lock.json
+**.data.json
+**.node-persist**
+**_IGNORE_**
+# end managed
+.env
+dragontail/
