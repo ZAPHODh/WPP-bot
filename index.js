@@ -85,6 +85,7 @@ async function start(client = Client) {
 }
 
 create({
+	sessionId: 'Mauro Chrisostimo',
 	licenseKey: process.env.KEY,
 	useChrome: true,
 	executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',

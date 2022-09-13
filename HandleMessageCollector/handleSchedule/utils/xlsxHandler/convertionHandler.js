@@ -1,20 +1,20 @@
 const ExcelJS = require('exceljs');
-const fs = require('fs');
+
 require('dotenv').config();
-const path = require('path');
-const { handleUsers } = require('../scheduledUsers/index');
+
+const { handleUsers } = require('../../scheduledUsers/index');
 
 const conversionHandler = async (client) => {
 	const user = handleUsers();
-	console.log(user);
 	const columns = [
 		{ name: 'Nome', filterButton: true },
-		{ name: 'Data', filterButton: true },
 		{ name: 'Profissional', filterButton: true },
+		{ name: 'Data', filterButton: true },
+		{ name: 'Horário', filterButton: true },
 		{ name: 'Serviços', filterButton: true },
 	];
 	const rows = user.map((each) => {
-		return [each.name, each.date, each.professional, each.service];
+		return [each.name, each.professional, each.date, each.hour, each.service];
 	});
 	const workbook = new ExcelJS.Workbook();
 
@@ -28,24 +28,24 @@ const conversionHandler = async (client) => {
 		headerRow: true,
 		totalsRow: false,
 		style: {
-			theme: 'TableStyleMedium2',
+			theme: 'TableStyleMedium1',
 			showRowStripes: true,
 		},
 		columns,
 		rows,
 	});
-	const file = 'Agendados.xlsx';
-	workbook.xlsx.writeFile(path.join(__dirname, file));
+
+	const buffer = await workbook.xlsx.writeBuffer();
+	const typeData = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+	const xlsxB64 = `data:${typeData};base64,${buffer.toString('base64')}`;
 	try {
 		await client.sendFile(
 			process.env.ATENDENTE,
-			path.join(__dirname, file),
+			xlsxB64,
 			'Aqui está a planilha  de agendamento atualizada.',
 		);
-		fs.unlink(file);
 	} catch (err) {
 		console.log(err);
-		fs.unlink(file);
 	}
 };
 module.exports = conversionHandler;

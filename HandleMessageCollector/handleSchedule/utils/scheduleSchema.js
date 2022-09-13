@@ -4,6 +4,22 @@ const Joi = require('joi');
 const validatorSchema = async (data) => {
 	const schema = Joi.object({
 		name: Joi.string().required(),
+		professional: Joi.string()
+			.required()
+			.valid(
+				'mauro',
+				'marcos barros',
+				'ariane',
+				'rodrigo',
+				'glaucio',
+				'maicon',
+				'graziele',
+				'ana katia',
+				'katia',
+				'gisele',
+				'ana lucia',
+				'patricia',
+			),
 		date: Joi.string()
 			.pattern(
 				new RegExp(
@@ -11,7 +27,9 @@ const validatorSchema = async (data) => {
 				),
 			)
 			.required(),
-		professional: Joi.string().required().valid('mauro', 'marcos barros', 'ariane'),
+		hour: Joi.string()
+			.pattern(new RegExp(/^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/))
+			.required(),
 		service: Joi.string().required(),
 	});
 

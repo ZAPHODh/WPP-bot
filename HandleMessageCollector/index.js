@@ -53,7 +53,8 @@ const HandleMessageCollector = async (client, message) => {
 					});
 					return;
 				case 'Falar com o atendente':
-					Response.ATEND(client, message); // Responseposta do atendimento
+					Response.ATEND(client, message);
+					collector.stop(); // Responseposta do atendimento
 					return;
 				case 'Curso':
 				default:

@@ -3,9 +3,10 @@ const validatorSchema = require('./scheduleSchema');
 const controlerSchedule = async (data) => {
 	const user = {
 		name: data[0],
-		date: data[1],
-		professional: data[2],
-		service: data[3],
+		professional: data[1],
+		date: data[2],
+		hour: data[3],
+		service: data[4],
 	};
 	const valid = await validatorSchema(user);
 	return { valid, user };
