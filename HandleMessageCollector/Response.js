@@ -1,10 +1,10 @@
 require('dotenv').config();
 
-const AgendarCollector = require('./handleSchedule/handleAgendarCollector');
+const scheduleCollector = require('./handleSchedule/handleAgendarCollector');
 
 const Response = {
 	AGENDAR: async (client, message) => {
-		await AgendarCollector(client, message);
+		await scheduleCollector(client, message);
 	},
 	LOCAL: async (client, message) => {
 		await client.sendLocation(

@@ -3,6 +3,7 @@ const Joi = require('joi');
 
 const validatorSchema = async (data) => {
 	const schema = Joi.object({
+		id: Joi.string().required(),
 		name: Joi.string().required(),
 		professional: Joi.string()
 			.required()

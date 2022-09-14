@@ -8,7 +8,7 @@ const handleEnd = async (data, client, message) => {
 	handleIgnore('remove', message);
 	const user = handleUsers();
 
-	const finished = [];
+	const finished = [message.from];
 	if (data.size < questions.length) {
 		await client.sendText(message.from, 'Você não respondeu todo o formulário');
 	} else {

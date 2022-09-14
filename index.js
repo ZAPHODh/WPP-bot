@@ -10,6 +10,7 @@ const FeriadoFun = require('./functions/FeriadoFun');
 // const handleUnreadMessages = require('./handleUnreadMessages');
 const HandleMessageCollector = require('./HandleMessageCollector');
 const Riot = require('./functions/Riot');
+const scheduleReminder = require('./handleScheduleRemiver');
 
 require('dotenv').config();
 
@@ -17,12 +18,18 @@ require('dotenv').config();
 async function start(client = Client) {
 	// const unreadMessages = await client.getAllUnreadMessages();
 	// handleUnreadMessages(unreadMessages);
+	setInterval(async () => {
+		await scheduleReminder(client);
+	}, 1000 * 60 * 60 * 24);
 
 	client.onIncomingCall(async (call) => {
 		await client.sendText(call.peerJid, 'não posso te atender');
 	});
 
 	client.onAnyMessage(async (message) => {
+		if (message.text.includes('arroz')) {
+			console.log(message);
+		}
 		if (message.text.includes('!lol')) {
 			await Riot(client, message);
 		}

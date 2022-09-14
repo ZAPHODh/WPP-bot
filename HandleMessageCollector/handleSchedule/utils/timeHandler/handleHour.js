@@ -1,9 +1,11 @@
 const { handleUsers } = require('../../scheduledUsers/index');
 
 const handleHour = async (date, prof) => {
+	const professional = prof.toLowerCase();
 	const users = handleUsers();
-	const userDate = users.filter((user) => user.date === date && user.professional === prof);
-	console.log(userDate);
+	const userDate = users.filter(
+		(user) => user.date === date && user.professional === professional,
+	);
 	const day = date.charAt(0) + date.charAt(1);
 	const month = date.charAt(3) + date.charAt(4);
 	const updatedDate = `${month}/${day}/${date.substring(6)}`;
