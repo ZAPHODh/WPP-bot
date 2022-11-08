@@ -1,16 +1,13 @@
 const profOptions = [
-	'Mauro',
+	'Mauro Chrisostimo',
 	'Marcos Barros',
 	'Ariane',
 	'Rodrigo',
 	'Glaucio',
-	'Maicon',
 	'Graziele',
-	'Ana Katia',
 	'Katia',
-	'Gisele',
-	'Ana Lucia',
 	'Patricia',
+	'Maria',
 ];
 
 module.exports = profOptions;

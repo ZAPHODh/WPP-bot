@@ -1,25 +1,27 @@
 const { create, Client } = require('@open-wa/wa-automate');
 
-const DefinirFun = require('./functions/DefinirFun');
-const TraducaoFun = require('./functions/TraducaoFun');
-const TotextFun = require('./functions/TotextFun');
-const YTDFun = require('./functions/YTDFun');
-const ToSticker = require('./functions/ToSticker');
-const StickerToImg = require('./functions/StickerToImg');
-const FeriadoFun = require('./functions/FeriadoFun');
-// const handleUnreadMessages = require('./handleUnreadMessages');
+const addOffer = require('./OfferHandler/addOffer');
+const removeOffer = require('./OfferHandler/removeOffer');
+const { handleUnreadMessages } = require('./handleUnreadMessages');
 const HandleMessageCollector = require('./HandleMessageCollector');
-const Riot = require('./functions/Riot');
-const scheduleReminder = require('./handleScheduleRemiver');
+
+const scheduleReminder = require('./handleDates/scheduleReminder');
+const addCourse = require('./CourseHandler/addCourse');
+const removeCourse = require('./CourseHandler/removeCourse');
+const { handleIgnore } = require('./HandleMessageCollector/utils/handleIgnore');
+const removePreviousDay = require('./handleDates/removePreviousDay');
+const endAttend = require('./AttendantHandler/endAttend');
 
 require('dotenv').config();
 
 // onde tudo acontece
 async function start(client = Client) {
-	// const unreadMessages = await client.getAllUnreadMessages();
-	// handleUnreadMessages(unreadMessages);
+	const unreadMessages = await client.getAllUnreadMessages();
+	handleUnreadMessages(unreadMessages);
+	// day-by-day reminder scheduled persons
 	setInterval(async () => {
 		await scheduleReminder(client);
+		removePreviousDay();
 	}, 1000 * 60 * 60 * 24);
 
 	client.onIncomingCall(async (call) => {
@@ -27,73 +29,26 @@ async function start(client = Client) {
 	});
 
 	client.onAnyMessage(async (message) => {
-		if (message.text.includes('arroz')) {
-			console.log(message);
-		}
-		if (message.text.includes('!lol')) {
-			await Riot(client, message);
-		}
-		if (message.text.includes('!pais')) {
-			await FeriadoFun(message, client);
-		}
-
-		if (message.text.includes('!toimg')) {
-			await StickerToImg(message, client);
-		}
-		// Inicio da função de tradução
-		if (message.text.includes('!tr') && message.quotedMsg != null) {
-			await TraducaoFun(message, client);
-		}
-		// fim da  função de traduçò
-
-		// inicio da função de definir
-		if (message.text.includes('!def')) {
-			await DefinirFun(message, client);
-		}
-		// fim da função de definir
-
-		// inicio da função de mudar imagem pra texto
-		if (message.text.includes('!totext') && message.quotedMsg != null) {
-			await TotextFun(message, client);
-		}
-		// fim da função de mudar imagem pra texto
-		if (message.text.includes('!r')) {
-			if (message.quotedMsg === null) {
-				client.sendText(message.from, 'Você não selecionou alguém para banir');
-			} else {
-				await client.removeParticipant(
-					message.chat.groupMetadata.id,
-					message.quotedMsg.author,
-				);
+		const ignore = handleIgnore();
+		if (!ignore.includes(message.from)) {
+			if (message.text.includes('ATENDIMENTO ENCERRADO')) {
+				await endAttend(client, message);
+			} else if (message.text.includes('!addOffer')) {
+				await addOffer(client, message);
+			} else if (message.text.includes('!removeOffer')) {
+				removeOffer(client, message);
+			} else if (message.text.includes('!addCourse')) {
+				await addCourse(client, message);
+			} else if (message.text.includes('!removeCourse')) {
+				await removeCourse(client, message);
+			} else if (message) {
+				await HandleMessageCollector(client, message);
 			}
-		}
-		if (message.text === '!pic' && message.sender.profilePicThumbObj.imgFull != null) {
-			console.log(message);
-			console.log(message.sender.profilePicThumbObj);
-			const pic = await client.getProfilePicFromServer(message.from);
-			await client.sendImage(message.from, pic, pic, 'ó como tu é lindo');
-		}
-
-		if (message.text === '!test') {
-			await HandleMessageCollector(client, message);
-		}
-
-		if (message.text === '!fig' || message.text === '!sti') {
-			ToSticker(message, client);
-		}
-		if (
-			message.text.charAt(0) === '!' &&
-			message.text.charAt(1) === 'y' &&
-			message.text.charAt(2) === 't'
-		) {
-			await YTDFun(message, client);
 		}
 	});
 }
 
 create({
-	sessionId: 'Mauro Chrisostimo',
 	licenseKey: process.env.KEY,
-	useChrome: true,
-	executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
+	cacheEnabled: false,
 }).then((client) => start(client));

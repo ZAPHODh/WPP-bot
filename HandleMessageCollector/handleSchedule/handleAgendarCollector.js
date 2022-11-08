@@ -6,7 +6,7 @@ const b64ify = require('./utils/b64ify');
 const handleDate = require('./utils/timeHandler/handleDate');
 const handleHour = require('./utils/timeHandler/handleHour');
 
-const AgendarCollector = async (client, message) => {
+const scheduleCollector = async (client, message) => {
 	let prof = '';
 	handleIgnore('add', message);
 	let counter = 0;
@@ -83,4 +83,4 @@ const AgendarCollector = async (client, message) => {
 	});
 };
 
-module.exports = AgendarCollector;
+module.exports = scheduleCollector;

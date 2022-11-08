@@ -28,7 +28,7 @@ const conversionHandler = async (client) => {
 		headerRow: true,
 		totalsRow: false,
 		style: {
-			theme: 'TableStyleMedium1',
+			theme: 'TableStyleDark3',
 			showRowStripes: true,
 		},
 		columns,
@@ -39,11 +39,7 @@ const conversionHandler = async (client) => {
 	const typeData = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 	const xlsxB64 = `data:${typeData};base64,${buffer.toString('base64')}`;
 	try {
-		await client.sendFile(
-			process.env.ATENDENTE,
-			xlsxB64,
-			'Aqui está a planilha  de agendamento atualizada.',
-		);
+		await client.sendFile(process.env.ATENDENTE, xlsxB64, 'Agendados.xlsx');
 	} catch (err) {
 		console.log(err);
 	}

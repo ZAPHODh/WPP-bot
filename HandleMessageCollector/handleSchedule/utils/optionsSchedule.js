@@ -1,3 +1,3 @@
-const options = ['Agendar', 'Local', 'Promoçoes', 'Serviços', 'Falar com o atendente', 'Curso'];
+const options = ['Agendar', 'Local', 'Promoçoes', 'Falar com o atendente', 'Curso'];
 
 module.exports = options;

@@ -1,12 +1,14 @@
 require('dotenv').config();
 
 const scheduleCollector = require('./handleSchedule/handleAgendarCollector');
+const sendOffer = require('../OfferHandler/index');
+const attendantHandler = require('../AttendantHandler');
 
 const Response = {
-	AGENDAR: async (client, message) => {
+	Schedule: async (client, message) => {
 		await scheduleCollector(client, message);
 	},
-	LOCAL: async (client, message) => {
+	Place: async (client, message) => {
 		await client.sendLocation(
 			message.from,
 			-22.759554355246195,
@@ -14,19 +16,13 @@ const Response = {
 			'Av. Dr. Mario Guimarães, 318 - Centro, Nova Iguaçu - RJ, 26255-230',
 		);
 	},
-	PROMO: async (client, message) => {
-		await client.sendText(message.from, 'There is no promos yet');
+	Offer: async (client, message) => {
+		await sendOffer(client, message);
 	},
-	ATEND: async (client, message) => {
-		await client.sendContact(process.env.ATENDENTE, message.from);
-		await client.sendText(process.env.ATENDENTE, 'Solicitou atendimento');
-		await client.sendText(
-			message.from,
-			'Tudo bem, sua mensagem foi enviada para um de nossos atendentes.',
-		);
-		await client.sendText(message.from, 'Em instantes iremos atendê-lo');
+	Attendant: async (client, message) => {
+		await attendantHandler(client, message);
 	},
-	CURSO: async (client, message) => {
+	Course: async (client, message) => {
 		if (process.env.CURSO === 'TRUE')
 			await client.sendText(message.from, 'Yup, we have a course for you');
 		else {

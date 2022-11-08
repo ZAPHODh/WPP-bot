@@ -5,7 +5,7 @@ const { handleUsers } = require('../scheduledUsers/index');
 const conversionHandler = require('./xlsxHandler/convertionHandler');
 
 const handleEnd = async (data, client, message) => {
-	handleIgnore('remove', message);
+	handleIgnore('remove', message.from);
 	const user = handleUsers();
 
 	const finished = [message.from];

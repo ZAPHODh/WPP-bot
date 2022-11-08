@@ -8,7 +8,7 @@ const validatorSchema = async (data) => {
 		professional: Joi.string()
 			.required()
 			.valid(
-				'mauro',
+				'mauro chrisostimo      ',
 				'marcos barros',
 				'ariane',
 				'rodrigo',

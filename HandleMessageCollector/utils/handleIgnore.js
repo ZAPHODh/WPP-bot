@@ -6,7 +6,7 @@ const handleIgnore = (order, message) => {
 			ignore.push(message.from);
 			return ignore;
 		case 'remove':
-			ignore = ignore.filter((ignored) => ignored !== message.from);
+			ignore = ignore.filter((ignored) => ignored !== message);
 			return ignore;
 		default:
 			return ignore;
